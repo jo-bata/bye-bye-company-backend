@@ -53,7 +53,7 @@ router.post('/register', function(req, res) {
     } else {
       console.log('Succesful register !');
       console.log(`id : ${user.id}, name : ${user.name}`);
-      const status = { "status": "200 : OK" };
+      const status = { "status": "200" };
       res.json(status);
     }
   });

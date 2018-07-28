@@ -14,14 +14,14 @@ router.post('/:userId/info', function(req, res) {
     "resignation_num": 0
   };
   const sql = 'INSERT INTO users_info SET ?';
-  conn.query(sql, user, function(err, results) {
+  conn.query(sql, user_info, function(err, results) {
     if(err) {
       console.log(err);
-      const status = { "status": "500 : Internal Server Error" };
+      const status = { "status": "500" };
       res.status(500).json(status);
     } else {
       console.log('Successful insert users_info !');
-      const status = { "status": "200 : OK" };
+      const status = { "status": "200" };
       res.json(status);
     }
   });
@@ -32,7 +32,7 @@ router.get('/:userId/info', function(req, res) {
   conn.query(sql, [req.params.userId], function(err, results) {
     if(err | results.length === 0) {
       console.log(err);
-      const status = { "status": "500 : Internal Server Error" };
+      const status = { "status": "500" };
       res.status(500).json(status);
     } else {
       console.log('Successful select users_info !');
@@ -55,7 +55,7 @@ router.get('/:userId/main', function(req, res) {
   conn.query(sql, [req.params.userId], function(err, results) {
     if(err | results.length === 0) {
       console.log(err);
-      const status = { "status": "500 : Internal Server Error" };
+      const status = { "status": "500" };
       res.status(500).json(status);
     } else {
       const company_name = results[0].company_name;
@@ -64,7 +64,7 @@ router.get('/:userId/main', function(req, res) {
       conn.query(sql, [req.params.userId], function(err, results) {
         if(err | results.length === 0) {
           console.log(err);
-          const status = { "status": "500 : Internal Server Error" };
+          const status = { "status": "500" };
           res.status(500).json(status);
         } else {
           const current_max_resignation_id = results[0].MAX(resignation_id);
@@ -72,7 +72,7 @@ router.get('/:userId/main', function(req, res) {
           conn.query(sql, [req.params.userId, current_max_resignation_id], function(err, results) {
             if(err | results.length === 0) {
               console.log(err);
-              const status = { "status": "500 : Internal Server Error" };
+              const status = { "status": "500" };
               res.status(500).json(status);
             } else {
               const current_reason_count = results[0].reason_num;
@@ -80,7 +80,7 @@ router.get('/:userId/main', function(req, res) {
               conn.query(sql, [req.params.userId, current_max_resignation_id], function(err, results) {
                 if(err) {
                   console.log(err);
-                  const status = { "status": "500 : Internal Server Error" };
+                  const status = { "status": "500" };
                   res.status(500).json(status);
                 } else if(results.length === 0){
                   const resignations = [];
@@ -126,7 +126,7 @@ router.get('/:userId/resignation', function(req, res) {
   conn.query(sql, [req.params.userId], function(err, results) {
     if(err | results.length === 0) {
       console.log(err);
-      const status = { "status": "500 : Internal Server Error" };
+      const status = { "status": "500" };
       res.status(500).json(status);
     } else {
       const current_max_resignation_id = results[0].MAX(resignation_id);
@@ -134,7 +134,7 @@ router.get('/:userId/resignation', function(req, res) {
       conn.query(sql, [req.params.userId, current_max_resignation_id], function(err, results) {
         if(err | results.length === 0) {
           console.log(err);
-          const status = { "status": "500 : Internal Server Error" };
+          const status = { "status": "500" };
           res.status(500).json(status);
         } else {
           const current_resignation = {
@@ -155,7 +155,7 @@ router.post('/:userId/resignation', function(req, res) {
   conn.query(sql, [req.params.userId], function(err, results) {
     if(err | results.length === 0) {
       console.log(err);
-      const status = { "status": "500 : Internal Server Error" };
+      const status = { "status": "500" };
       res.status(500).json(status);
     } else {
       const current_max_resignation_id = results[0].MAX(resignation_id);
@@ -163,7 +163,7 @@ router.post('/:userId/resignation', function(req, res) {
       conn.query(sql, [req.params.userId, current_max_resignation_id], function(err, results) {
         if(err | results.length === 0) {
           console.log(err);
-          const status = { "status": "500 : Internal Server Error" };
+          const status = { "status": "500" };
           res.status(500).json(status);
         } else {
           const current_reason_count = results[0].reason_num;
@@ -174,10 +174,10 @@ router.post('/:userId/resignation', function(req, res) {
             conn.query(sql1 + sql2 + sql3, [req.body.reason, (current_reason_count + 1), req.params.userId, current_max_resignation_id], function(err, results) {
               if(err) {
                 console.log(err);
-                const status = { "status": "500 : Internal Server Error" };
+                const status = { "status": "500" };
                 res.status(500).json(status);
               } else {
-                const status = { "status": "200 : OK" };
+                const status = { "status": "200" };
                 res.status(200).json(status);
               }
             });
@@ -188,10 +188,10 @@ router.post('/:userId/resignation', function(req, res) {
             conn.query(sql, [req.body.reason, (current_reason_count + 1), after_date, req.params.userId, current_max_resignation_id], function(err, results) {
               if(err) {
                 console.log(err);
-                const status = { "status": "500 : Internal Server Error" };
+                const status = { "status": "500" };
                 res.status(500).json(status);
               } else {
-                const status = { "status": "200 : OK"};
+                const status = { "status": "200"};
                 res.status(200).json(status);
               }
             });
@@ -207,7 +207,7 @@ router.get('/:userId/resignation/submit', function(req, res) {
   conn.query(sql, [req.params.userId], function(err, results) {
     if(err | results.length === 0) {
       console.log(err);
-      const status = { "status": "500 : Internal Server Error" };
+      const status = { "status": "500" };
       res.status(500).json(status);
     } else {
       const current_max_resignation_id = results[0].MAX(resignation_id);
@@ -215,7 +215,7 @@ router.get('/:userId/resignation/submit', function(req, res) {
       conn.query(sql, [req.params.userId, current_max_resignation_id], function(err, results) {
         if(err | results.length === 0) {
           console.log(err);
-          const status = { "status": "500 : Internal Server Error" };
+          const status = { "status": "500" };
           res.status(500).json(status);
         } else {
           const first_reason = results[0].after_first_reason;
@@ -229,7 +229,7 @@ router.get('/:userId/resignation/submit', function(req, res) {
           conn.query(sql, [req.params.userId], function(err, results) {
             if(err | results.length === 0) {
               console.log(err);
-              const status = { "status": "500 : Internal Server Error" };
+              const status = { "status": "500" };
               res.status(500).json(status);
             } else {
               const department = results[0].department;
@@ -238,7 +238,7 @@ router.get('/:userId/resignation/submit', function(req, res) {
               conn.query(sql, [req.params.userId], function(err, results) {
                 if(err | results.length === 0) {
                   console.log(err);
-                  const status = { "status": "500 : Internal Server Error" };
+                  const status = { "status": "500" };
                   res.status(500).json(status);
                 } else {
                   const name = results[0].name;
@@ -250,7 +250,7 @@ router.get('/:userId/resignation/submit', function(req, res) {
                   conn.query(sql, resignation, function(err, results) {
                     if(err | results.length === 0) {
                       console.log(err);
-                      const status = { "status": "500 : Internal Server Error" };
+                      const status = { "status": "500" };
                       res.status(500).json(status);
                     } else {
                       const final_resignation = {
@@ -273,6 +273,28 @@ router.get('/:userId/resignation/submit', function(req, res) {
           });
         }
       });
+    }
+  });
+});
+
+router.get('/:userId/resignation/:resignationId', function(req, res) {
+  sql = 'SELECT * FROM resignations WHERE user_id=? AND resignation_id=?';
+  conn.query(sql, [req.params.userId, req.params.resignationId], function(err, results) {
+    if(err | results.length === 0) {
+      console.log(err);
+      const status = { "status": "500" };
+      res.status(500).json(status);
+    } else {
+      const resignation = {
+        "before_first_reason": results[0].before_first_reason,
+        "before_second_reason": results[0].before_second_reason,
+        "before_third_reason": results[0].before_third_reason,
+        "after_first_reason": results[0].after_first_reason,
+        "after_second_reason": results[0].after_second_reason,
+        "after_third_reason": results[0].after_third_reason,
+        "date": results[0].date
+      };
+      res.json(resignation);
     }
   });
 });
