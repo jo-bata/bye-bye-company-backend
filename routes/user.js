@@ -179,71 +179,38 @@ router.post('/:userId/resignation', function(req, res) {
           res.status(500).json(status);
         } else {
           const current_reason_count = results[0].reason_num;
-          mecab.parse(req.body.reason, function (items) {
-            for (let i in items) {
-              const k = items[i];
-              const word = k[0];
-              const pos = k[1];
-              if(k == "EOS") continue;
-              if(pos == "VA+ETM" || pos == "MM" || pos == "VV" || pos == "MAG" || pos == "NNG" || pos == "VA" || pos == "NNP" || pos == "NNB") {
-                  console.log(`${word} : ${pos}`);
-                  const sql = 'SELECT * FROM keyword_dictionary WHERE keyword=?';
-                  conn.query(sql, [word], function(err, results) {
-                    if(err | results.length === 0) {
-                      // console.log(err);
-                      // console.log(12-1);
-                      // const status = { "status": "500" };
-                      // res.status(500).json(status);
-                    } else {
-                      const reason_id = results[0].reason_id;
-                      const sql = 'SELECT * FROM resignation_reasons WHERE id=?'
-                      conn.query(sql, [reason_id], function(err, results) {
-                        if(err | results.length === 0) {
-                          console.log(err);
-                          console.log(12-2);
-                          const status = { "status": "500" };
-                          res.status(500).json(status);
-                        } else {
-                          if(current_reason_count < 2) {
-                            const sql1 = 'UPDATE resignations SET ';
-                            const sql2 = (current_reason_count === 0) ? 'before_first_reason=?, after_first_reason=?' : 'before_second_reason=?, after_second_reason=?';
-                            const sql3 = ', reason_num=? WHERE user_id=? AND resignation_id=?';
-                            conn.query(sql1 + sql2 + sql3, [req.body.reason, results[0].reason, (current_reason_count + 1), req.params.userId, current_max_resignation_id], function(err, results) {
-                              if(err) {
-                                console.log(err);
-                                console.log(13);
-                                const status = { "status": "500" };
-                                res.status(500).json(status);
-                              } else {
-                                const status = { "status": "200" };
-                                res.status(200).json(status);
-                              }
-                            });
-                          } else {
-                            const sql = 'UPDATE resignations SET before_third_reason=?, after_third_reason=?, reason_num=?, date=? WHERE user_id=? AND resignation_id=?';
-                            const before_date = new Date();
-                            const after_date = `${before_date.getFullYear()}-${before_date.getMonth() + 1}-${before_date.getDate()}`;
-                            conn.query(sql, [req.body.reason, results[0].reason, (current_reason_count + 1), after_date, req.params.userId, current_max_resignation_id], function(err, results) {
-                              if(err) {
-                                console.log(err);
-                                console.log(14);
-                                const status = { "status": "500" };
-                                res.status(500).json(status);
-                              } else {
-                                const status = { "status": "200"};
-                                res.status(200).json(status);
-                              }
-                            });
-                          }
-                        }
-                      });
-                    }
-                  });
-              }
+            if(current_reason_count < 2) {
+              const sql1 = 'UPDATE resignations SET ';
+              const sql2 = (current_reason_count === 0) ? 'before_first_reason=?' : 'before_second_reason=?';
+              const sql3 = ', reason_num=? WHERE user_id=? AND resignation_id=?';
+              conn.query(sql1 + sql2 + sql3, [req.body.reason, (current_reason_count + 1), req.params.userId, current_max_resignation_id], function(err, results) {
+                if(err) {
+                  console.log(err);
+                  console.log(13);
+                  const status = { "status": "500" };
+                  res.status(500).json(status);
+                } else {
+                  const status = { "status": "200" };
+                  res.status(200).json(status);
+                }
+              });
+            } else {
+              const sql = 'UPDATE resignations SET before_third_reason=?, reason_num=?, date=? WHERE user_id=? AND resignation_id=?';
+              const before_date = new Date();
+              const after_date = `${before_date.getFullYear()}-${before_date.getMonth() + 1}-${before_date.getDate()}`;
+              conn.query(sql, [req.body.reason, (current_reason_count + 1), after_date, req.params.userId, current_max_resignation_id], function(err, results) {
+                if(err) {
+                  console.log(err);
+                  console.log(14);
+                  const status = { "status": "500" };
+                  res.status(500).json(status);
+                } else {
+                  const status = { "status": "200"};
+                  res.status(200).json(status);
+                }
+              });
             }
-            
-          });
-        }
+          }
       });
     }
   });
