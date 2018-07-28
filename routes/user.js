@@ -167,17 +167,108 @@ router.post('/:userId/resignation', function(req, res) {
           res.status(500).json(status);
         } else {
           const current_reason_count = results[0].reason_num;
-          const sql1 = 'UPDATE resignations SET ';
-          const sql2 = (current_reason_count === 0) ? 'before_first_reason=?' : 'before_second_reason=?';
-          const sql3 = ', reason_num=? WHERE user_id=? AND resignation_id=?';
-          conn.query(sql1 + sql2 + sql3, [req.body.reason, (current_reason_count + 1), req.params.userId, current_max_resignation_id], function(err, results) {
-            if(err) {
+          if(current_reason_count < 2) {
+            const sql1 = 'UPDATE resignations SET ';
+            const sql2 = (current_reason_count === 0) ? 'before_first_reason=?' : 'before_second_reason=?';
+            const sql3 = ', reason_num=? WHERE user_id=? AND resignation_id=?';
+            conn.query(sql1 + sql2 + sql3, [req.body.reason, (current_reason_count + 1), req.params.userId, current_max_resignation_id], function(err, results) {
+              if(err) {
+                console.log(err);
+                const status = { "status": "500 : Internal Server Error" };
+                res.status(500).json(status);
+              } else {
+                const status = { "status": "200 : OK" };
+                res.status(200).json(status);
+              }
+            });
+          } else {
+            const sql = 'UPDATE resignations SET before_third_reason=?, reason_num=?, date=? WHERE user_id=? AND resignation_id=?';
+            const before_date = new Date();
+            const after_date = `${before_date.getFullYear()}-${before_date.getMonth() + 1}-${before_date.getDate()}`;
+            conn.query(sql, [req.body.reason, (current_reason_count + 1), after_date, req.params.userId, current_max_resignation_id], function(err, results) {
+              if(err) {
+                console.log(err);
+                const status = { "status": "500 : Internal Server Error" };
+                res.status(500).json(status);
+              } else {
+                const status = { "status": "200 : OK"};
+                res.status(200).json(status);
+              }
+            });
+          }
+        }
+      });
+    }
+  });
+});
+
+router.get('/:userId/resignation/submit', function(req, res) {
+  const sql = 'SELECT MAX(resignation_id) FROM resignations WHERE user_id=?';
+  conn.query(sql, [req.params.userId], function(err, results) {
+    if(err | results.length === 0) {
+      console.log(err);
+      const status = { "status": "500 : Internal Server Error" };
+      res.status(500).json(status);
+    } else {
+      const current_max_resignation_id = results[0].MAX(resignation_id);
+      const sql = 'SELECT * FROM resignations WHERE user_id=? AND resignation_id=?';
+      conn.query(sql, [req.params.userId, current_max_resignation_id], function(err, results) {
+        if(err | results.length === 0) {
+          console.log(err);
+          const status = { "status": "500 : Internal Server Error" };
+          res.status(500).json(status);
+        } else {
+          const first_reason = results[0].after_first_reason;
+          const second_reason = results[0].after_second_reason;
+          const third_reason = results[0].after_third_reason;
+          const date = results[0].date.split('-');
+          const join_year = date[0];
+          const join_month = date[1];
+          const join_day = date[2];
+          const sql = 'SELECT * FROM users_info WHERE user_id=?';
+          conn.query(sql, [req.params.userId], function(err, results) {
+            if(err | results.length === 0) {
               console.log(err);
               const status = { "status": "500 : Internal Server Error" };
               res.status(500).json(status);
             } else {
-              const status = { "status": "200 : OK" };
-              res.status(200).json(status);
+              const department = results[0].department;
+              const position = results[0].position;
+              const sql = 'SELECT * FROM users WHERE user_id=?';
+              conn.query(sql, [req.params.userId], function(err, results) {
+                if(err | results.length === 0) {
+                  console.log(err);
+                  const status = { "status": "500 : Internal Server Error" };
+                  res.status(500).json(status);
+                } else {
+                  const name = results[0].name;
+                  const sql = 'INSERT INTO resignations SET ?';
+                  const resignation = {
+                    "user_id": req.params.userId,
+                    "reason_num": 0
+                  };
+                  conn.query(sql, resignation, function(err, results) {
+                    if(err | results.length === 0) {
+                      console.log(err);
+                      const status = { "status": "500 : Internal Server Error" };
+                      res.status(500).json(status);
+                    } else {
+                      const final_resignation = {
+                        "department": department,
+                        "position": position,
+                        "name": name,
+                        "first_reason": first_reason,
+                        "second_reason": second_reason,
+                        "thrid_reason": third_reason,
+                        "join_year": join_year,
+                        "join_month": join_month,
+                        "join_day": join_day
+                      };
+                      res.json(final_resignation);
+                    }
+                  });
+                }
+              });
             }
           });
         }
