@@ -1,6 +1,8 @@
 const router = require('express').Router();
 
 const conn = require('../config/mysql');
+const Mecab = require('../config/mecab-mod');
+const mecab = new Mecab();
 
 router.post('/:userId/info', function(req, res) {
   const user_info = {
@@ -17,6 +19,7 @@ router.post('/:userId/info', function(req, res) {
   conn.query(sql, user_info, function(err, results) {
     if(err) {
       console.log(err);
+      console.log(3);
       const status = { "status": "500" };
       res.status(500).json(status);
     } else {
@@ -32,6 +35,7 @@ router.get('/:userId/info', function(req, res) {
   conn.query(sql, [req.params.userId], function(err, results) {
     if(err | results.length === 0) {
       console.log(err);
+      console.log(4);
       const status = { "status": "500" };
       res.status(500).json(status);
     } else {
@@ -51,27 +55,31 @@ router.get('/:userId/info', function(req, res) {
 });
 
 router.get('/:userId/main', function(req, res) {
-  const sql = 'SELECT * FROM users_info FROM user_id=?';
+  const sql = 'SELECT * FROM users_info WHERE user_id=?';
   conn.query(sql, [req.params.userId], function(err, results) {
     if(err | results.length === 0) {
       console.log(err);
+      console.log(5);
       const status = { "status": "500" };
       res.status(500).json(status);
     } else {
       const company_name = results[0].company_name;
       const attendance_day = dateDiff(`${results[0].join_year}-${results[0].join_month}-${results[0].join_day}`, new Date());
-      const sql = 'SELECT MAX(resignation_id) FROM resignations WHERE user_id=?';
+      const sql = "SELECT MAX(resignation_id) AS 'max_resignation_id' FROM resignations WHERE user_id=?";
       conn.query(sql, [req.params.userId], function(err, results) {
         if(err | results.length === 0) {
           console.log(err);
+          console.log(6);
           const status = { "status": "500" };
           res.status(500).json(status);
         } else {
-          const current_max_resignation_id = results[0].MAX(resignation_id);
+          const current_max_resignation_id = results[0].max_resignation_id;
+          console.log(current_max_resignation_id);
           const sql = 'SELECT reason_num FROM resignations WHERE user_id=? AND resignation_id=?';
           conn.query(sql, [req.params.userId, current_max_resignation_id], function(err, results) {
             if(err | results.length === 0) {
               console.log(err);
+              console.log(7);
               const status = { "status": "500" };
               res.status(500).json(status);
             } else {
@@ -80,6 +88,7 @@ router.get('/:userId/main', function(req, res) {
               conn.query(sql, [req.params.userId, current_max_resignation_id], function(err, results) {
                 if(err) {
                   console.log(err);
+                  console.log(8);
                   const status = { "status": "500" };
                   res.status(500).json(status);
                 } else if(results.length === 0){
@@ -116,24 +125,25 @@ router.get('/:userId/main', function(req, res) {
           });
         }
       });
-      res.json(user_info);
     }
   });
 });
 
 router.get('/:userId/resignation', function(req, res) {
-  const sql = 'SELECT MAX(resignation_id) FROM resignations WHERE user_id=?';
+  const sql = "SELECT MAX(resignation_id) AS 'max_resignation_id' FROM resignations WHERE user_id=?";
   conn.query(sql, [req.params.userId], function(err, results) {
     if(err | results.length === 0) {
       console.log(err);
+      console.log(9);
       const status = { "status": "500" };
       res.status(500).json(status);
     } else {
-      const current_max_resignation_id = results[0].MAX(resignation_id);
+      const current_max_resignation_id = results[0].max_resignation_id;
       const sql = 'SELECT * FROM resignations WHERE user_id=? AND resignation_id=?';
       conn.query(sql, [req.params.userId, current_max_resignation_id], function(err, results) {
         if(err | results.length === 0) {
           console.log(err);
+          console.log(10);
           const status = { "status": "500" };
           res.status(500).json(status);
         } else {
@@ -151,51 +161,88 @@ router.get('/:userId/resignation', function(req, res) {
 });
 
 router.post('/:userId/resignation', function(req, res) {
-  const sql = 'SELECT MAX(resignation_id) FROM resignations WHERE user_id=?';
+  const sql = "SELECT MAX(resignation_id) AS 'max_resignation_id' FROM resignations WHERE user_id=?";
   conn.query(sql, [req.params.userId], function(err, results) {
     if(err | results.length === 0) {
       console.log(err);
+      console.log(11);
       const status = { "status": "500" };
       res.status(500).json(status);
     } else {
-      const current_max_resignation_id = results[0].MAX(resignation_id);
+      const current_max_resignation_id = results[0].max_resignation_id;
       const sql = 'SELECT * FROM resignations WHERE user_id=? AND resignation_id=?';
       conn.query(sql, [req.params.userId, current_max_resignation_id], function(err, results) {
         if(err | results.length === 0) {
           console.log(err);
+          console.log(12);
           const status = { "status": "500" };
           res.status(500).json(status);
         } else {
           const current_reason_count = results[0].reason_num;
-          if(current_reason_count < 2) {
-            const sql1 = 'UPDATE resignations SET ';
-            const sql2 = (current_reason_count === 0) ? 'before_first_reason=?' : 'before_second_reason=?';
-            const sql3 = ', reason_num=? WHERE user_id=? AND resignation_id=?';
-            conn.query(sql1 + sql2 + sql3, [req.body.reason, (current_reason_count + 1), req.params.userId, current_max_resignation_id], function(err, results) {
-              if(err) {
-                console.log(err);
-                const status = { "status": "500" };
-                res.status(500).json(status);
-              } else {
-                const status = { "status": "200" };
-                res.status(200).json(status);
+          mecab.parse(req.body.reason, function (items) {
+            for (let i in items) {
+              const k = items[i];
+              const word = k[0];
+              const pos = k[1];
+              if(k == "EOS") continue;
+              if(pos == "VA+ETM" || pos == "MM" || pos == "VV" || pos == "MAG" || pos == "NNG" || pos == "VA" || pos == "NNP" || pos == "NNB") {
+                  console.log(`${word} : ${pos}`);
+                  const sql = 'SELECT * FROM keyword_dictionary WHERE keyword=?';
+                  conn.query(sql, [word], function(err, results) {
+                    if(err | results.length === 0) {
+                      // console.log(err);
+                      // console.log(12-1);
+                      // const status = { "status": "500" };
+                      // res.status(500).json(status);
+                    } else {
+                      const reason_id = results[0].reason_id;
+                      const sql = 'SELECT * FROM resignation_reasons WHERE id=?'
+                      conn.query(sql, [reason_id], function(err, results) {
+                        if(err | results.length === 0) {
+                          console.log(err);
+                          console.log(12-2);
+                          const status = { "status": "500" };
+                          res.status(500).json(status);
+                        } else {
+                          if(current_reason_count < 2) {
+                            const sql1 = 'UPDATE resignations SET ';
+                            const sql2 = (current_reason_count === 0) ? 'before_first_reason=?, after_first_reason=?' : 'before_second_reason=?, after_second_reason=?';
+                            const sql3 = ', reason_num=? WHERE user_id=? AND resignation_id=?';
+                            conn.query(sql1 + sql2 + sql3, [req.body.reason, results[0].reason, (current_reason_count + 1), req.params.userId, current_max_resignation_id], function(err, results) {
+                              if(err) {
+                                console.log(err);
+                                console.log(13);
+                                const status = { "status": "500" };
+                                res.status(500).json(status);
+                              } else {
+                                const status = { "status": "200" };
+                                res.status(200).json(status);
+                              }
+                            });
+                          } else {
+                            const sql = 'UPDATE resignations SET before_third_reason=?, after_third_reason=?, reason_num=?, date=? WHERE user_id=? AND resignation_id=?';
+                            const before_date = new Date();
+                            const after_date = `${before_date.getFullYear()}-${before_date.getMonth() + 1}-${before_date.getDate()}`;
+                            conn.query(sql, [req.body.reason, results[0].reason, (current_reason_count + 1), after_date, req.params.userId, current_max_resignation_id], function(err, results) {
+                              if(err) {
+                                console.log(err);
+                                console.log(14);
+                                const status = { "status": "500" };
+                                res.status(500).json(status);
+                              } else {
+                                const status = { "status": "200"};
+                                res.status(200).json(status);
+                              }
+                            });
+                          }
+                        }
+                      });
+                    }
+                  });
               }
-            });
-          } else {
-            const sql = 'UPDATE resignations SET before_third_reason=?, reason_num=?, date=? WHERE user_id=? AND resignation_id=?';
-            const before_date = new Date();
-            const after_date = `${before_date.getFullYear()}-${before_date.getMonth() + 1}-${before_date.getDate()}`;
-            conn.query(sql, [req.body.reason, (current_reason_count + 1), after_date, req.params.userId, current_max_resignation_id], function(err, results) {
-              if(err) {
-                console.log(err);
-                const status = { "status": "500" };
-                res.status(500).json(status);
-              } else {
-                const status = { "status": "200"};
-                res.status(200).json(status);
-              }
-            });
-          }
+            }
+            
+          });
         }
       });
     }
@@ -203,18 +250,20 @@ router.post('/:userId/resignation', function(req, res) {
 });
 
 router.get('/:userId/resignation/submit', function(req, res) {
-  const sql = 'SELECT MAX(resignation_id) FROM resignations WHERE user_id=?';
+  const sql = "SELECT MAX(resignation_id) AS 'max_resignation_id' FROM resignations WHERE user_id=?";
   conn.query(sql, [req.params.userId], function(err, results) {
     if(err | results.length === 0) {
       console.log(err);
+      console.log(15);
       const status = { "status": "500" };
       res.status(500).json(status);
     } else {
-      const current_max_resignation_id = results[0].MAX(resignation_id);
+      const current_max_resignation_id = results[0].max_resignation_id;
       const sql = 'SELECT * FROM resignations WHERE user_id=? AND resignation_id=?';
       conn.query(sql, [req.params.userId, current_max_resignation_id], function(err, results) {
         if(err | results.length === 0) {
           console.log(err);
+          console.log(16);
           const status = { "status": "500" };
           res.status(500).json(status);
         } else {
@@ -229,6 +278,7 @@ router.get('/:userId/resignation/submit', function(req, res) {
           conn.query(sql, [req.params.userId], function(err, results) {
             if(err | results.length === 0) {
               console.log(err);
+              console.log(17);
               const status = { "status": "500" };
               res.status(500).json(status);
             } else {
@@ -238,18 +288,21 @@ router.get('/:userId/resignation/submit', function(req, res) {
               conn.query(sql, [req.params.userId], function(err, results) {
                 if(err | results.length === 0) {
                   console.log(err);
+                  console.log(18);
                   const status = { "status": "500" };
                   res.status(500).json(status);
                 } else {
                   const name = results[0].name;
                   const sql = 'INSERT INTO resignations SET ?';
                   const resignation = {
+                    "resignation_id": current_max_resignation_id+1,
                     "user_id": req.params.userId,
                     "reason_num": 0
                   };
                   conn.query(sql, resignation, function(err, results) {
                     if(err | results.length === 0) {
                       console.log(err);
+                      console.log(19);
                       const status = { "status": "500" };
                       res.status(500).json(status);
                     } else {
@@ -282,6 +335,7 @@ router.get('/:userId/resignation/:resignationId', function(req, res) {
   conn.query(sql, [req.params.userId, req.params.resignationId], function(err, results) {
     if(err | results.length === 0) {
       console.log(err);
+      console.log(20);
       const status = { "status": "500" };
       res.status(500).json(status);
     } else {
@@ -306,7 +360,7 @@ function dateDiff(_date1, _date2) {
   diffDate_1 = new Date(diffDate_1.getFullYear(), diffDate_1.getMonth()+1, diffDate_1.getDate());
   diffDate_2 = new Date(diffDate_2.getFullYear(), diffDate_2.getMonth()+1, diffDate_2.getDate());
 
-  const diff = Math.abs(diffDate_2.getTime() - diffDate_1.getTime());
+  let diff = Math.abs(diffDate_2.getTime() - diffDate_1.getTime());
   diff = Math.ceil(diff / (1000 * 3600 * 24));
 
   return diff;

@@ -49,12 +49,29 @@ router.post('/register', function(req, res) {
   conn.query(sql, user, function(err, results) {
     if(err) {
       console.log(err);
-      throw err;
+      console.log(1);
+      const status = { "status": "500" };
+      res.status(500).json(status);
     } else {
-      console.log('Succesful register !');
-      console.log(`id : ${user.id}, name : ${user.name}`);
-      const status = { "status": "200" };
-      res.json(status);
+      const sql = "INSERT INTO resignations SET ?";
+      const resignation = {
+        "resignation_id": 1,
+        "user_id": user.id,
+        "reason_num": 0
+      };
+      conn.query(sql, resignation, function(err, results) {
+        if(err) {
+          console.log(err);
+          console.log(2);
+          const status = { "status": "500" };
+          res.status(500).json(status);
+        } else {
+          console.log('Succesful register !');
+          console.log(`id : ${user.id}, name : ${user.name}`);
+          const status = { "status": "200" };
+          res.json(status);
+        }
+      });
     }
   });
 });
