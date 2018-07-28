@@ -121,6 +121,35 @@ router.get('/:userId/main', function(req, res) {
   });
 });
 
+router.get('/:userId/resignation', function(req, res) {
+  const sql = 'SELECT MAX(resignation_id) FROM resignations WHERE user_id=?';
+  conn.query(sql, [req.params.userId], function(err, results) {
+    if(err | results.length === 0) {
+      console.log(err);
+      const status = { "status": "500 : Internal Server Error" };
+      res.status(500).json(status);
+    } else {
+      const current_max_resignation_id = results[0].MAX(resignation_id);
+      const sql = 'SELECT * FROM resignations WHERE user_id=? AND resignation_id=?';
+      conn.query(sql, [req.params.userId, current_max_resignation_id], function(err, results) {
+        if(err | results.length === 0) {
+          console.log(err);
+          const status = { "status": "500 : Internal Server Error" };
+          res.status(500).json(status);
+        } else {
+          const current_resignation = {
+            "first_reason": results[0].first_reason,
+            "second_reason": results[0].second_reason,
+            "third_reason": results[0].third_reason,
+            "current_reason_count": results[0].reason_num
+          };
+          res.json(current_resignation);
+        }
+      });
+    }
+  });
+});
+
 function dateDiff(_date1, _date2) {
   let diffDate_1 = _date1 instanceof Date ? _date1 : new Date(_date1);
   let diffDate_2 = _date2 instanceof Date ? _date2 : new Date(_date2);
