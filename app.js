@@ -12,6 +12,7 @@ const user = require('./routes/user');
 const app = express();
 
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 app.use(session({
   secret: config.session.secret,
   resave: config.session.resave,

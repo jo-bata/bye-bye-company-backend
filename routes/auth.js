@@ -41,9 +41,10 @@ router.get('/login/kakao/callback',
 
 router.post('/register', function(req, res) {
   const user = {
-    "id": req.id,
-    "name": req.name
+    "id": req.body.id,
+    "name": req.body.name
   };
+  console.log(`id : ${user.id}, name : ${user.name}`);
   const sql = 'INSERT INTO users SET ?';
   conn.query(sql, user, function(err, results) {
     if(err) {

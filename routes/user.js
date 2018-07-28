@@ -5,12 +5,12 @@ const conn = require('../config/mysql');
 router.post('/:userId/info', function(req, res) {
   const user_info = {
     "user_id": req.params.userId,
-    "join_year": req.join_year,
-    "join_month": req.join_month,
-    "join_day": req.join_day,
-    "company_name": req.company_name,
-    "department": req.department,
-    "position": req.position,
+    "join_year": req.body.join_year,
+    "join_month": req.body.join_month,
+    "join_day": req.body.join_day,
+    "company_name": req.body.company_name,
+    "department": req.body.department,
+    "position": req.body.position,
     "resignation_num": 0
   };
   const sql = 'INSERT INTO users_info SET ?';
@@ -144,6 +144,42 @@ router.get('/:userId/resignation', function(req, res) {
             "current_reason_count": results[0].reason_num
           };
           res.json(current_resignation);
+        }
+      });
+    }
+  });
+});
+
+router.post('/:userId/resignation', function(req, res) {
+  const sql = 'SELECT MAX(resignation_id) FROM resignations WHERE user_id=?';
+  conn.query(sql, [req.params.userId], function(err, results) {
+    if(err | results.length === 0) {
+      console.log(err);
+      const status = { "status": "500 : Internal Server Error" };
+      res.status(500).json(status);
+    } else {
+      const current_max_resignation_id = results[0].MAX(resignation_id);
+      const sql = 'SELECT * FROM resignations WHERE user_id=? AND resignation_id=?';
+      conn.query(sql, [req.params.userId, current_max_resignation_id], function(err, results) {
+        if(err | results.length === 0) {
+          console.log(err);
+          const status = { "status": "500 : Internal Server Error" };
+          res.status(500).json(status);
+        } else {
+          const current_reason_count = results[0].reason_num;
+          const sql1 = 'UPDATE resignations SET ';
+          const sql2 = (current_reason_count === 0) ? 'before_first_reason=?' : 'before_second_reason=?';
+          const sql3 = ', reason_num=? WHERE user_id=? AND resignation_id=?';
+          conn.query(sql1 + sql2 + sql3, [req.body.reason, (current_reason_count + 1), req.params.userId, current_max_resignation_id], function(err, results) {
+            if(err) {
+              console.log(err);
+              const status = { "status": "500 : Internal Server Error" };
+              res.status(500).json(status);
+            } else {
+              const status = { "status": "200 : OK" };
+              res.status(200).json(status);
+            }
+          });
         }
       });
     }
