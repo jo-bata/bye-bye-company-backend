@@ -28,8 +28,7 @@ module.exports = () => {
     function (accessToken, refreshToken, profile, done) {
       loginByThirdparty({
         'id': profile.id,
-        'name': profile.username,
-        'provider': profile.provider
+        'name': profile.username
       }, done);
     })
   );

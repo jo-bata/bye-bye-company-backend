@@ -21,7 +21,13 @@ router.get('/login', function(req, res) {
 });
 
 router.get('/login/success', function(req, res) {
-  res.send('Succesful Login !');
+  const result = `{ "userId": "${req.user.id}"}`
+  res.send(result);
+});
+
+router.get('/login/fail', function(req, res) {
+  console.log('/auth/login/fail!!!');
+  res.send('Login Failed !');
 });
 
 router.get('/login/kakao', passport.authenticate('kakao'));
@@ -29,8 +35,27 @@ router.get('/login/kakao', passport.authenticate('kakao'));
 router.get('/login/kakao/callback',
   passport.authenticate('kakao', {
     successRedirect: '/auth/login/success',
-    failureRedirect: '/auth/login'
+    failureRedirect: '/auth/login/fail'
   })
 );
+
+router.post('/register', function(req, res) {
+  const user = {
+    "id": req.id,
+    "name": req.name
+  };
+  const sql = 'INSERT INTO users SET ?';
+  conn.query(sql, user, function(err, results) {
+    if(err) {
+      console.log(err);
+      throw err;
+    } else {
+      console.log('Succesful register !');
+      console.log(`id : ${user.id}, name : ${user.name}`);
+      const status = { "status": "200 : OK" };
+      res.json(status);
+    }
+  });
+});
 
 module.exports = router;
