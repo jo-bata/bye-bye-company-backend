@@ -1,0 +1,28 @@
+{
+  "name": "bye-bye-company-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jo-bata/bye-bye-company-backend.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jo-bata/bye-bye-company-backend/issues"
+  },
+  "homepage": "https://github.com/jo-bata/bye-bye-company-backend#readme",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "express": "^4.16.3",
+    "express-mysql-session": "^2.0.0",
+    "express-session": "^1.15.6",
+    "mysql": "^2.16.0",
+    "passport": "^0.4.0",
+    "passport-kakao": "0.0.5"
+  }
+}
