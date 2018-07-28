@@ -7,6 +7,7 @@ const MySQLStore = require('express-mysql-session')(session);
 const config = require('./config/config');
 const passportConfig = require('./config/passport');
 const auth = require('./routes/auth');
+const user = require('./routes/user');
 
 const app = express();
 
@@ -27,5 +28,6 @@ app.use(passport.initialize());
 app.use(passport.session());
 passportConfig();
 app.use('/auth/', auth);
+app.use('/user/', user);
 
 module.exports = app;
