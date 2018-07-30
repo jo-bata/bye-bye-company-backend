@@ -1,15 +1,22 @@
 # bye-bye-company-backend
 
-**UNITHON 7TH 3TEAM 내품사**
+## UNITHON 7TH 3TEAM 내품사
 
-내가 품은 사직서
+<img width="864" alt="bye-bye-company" src="https://user-images.githubusercontent.com/36880294/43389558-f92f36ba-9426-11e8-86c1-6ac743604473.png">
 
-‘누구나 가슴에 사표 한 장씩은 품고 산다.’
+### API 문서 정리 & DB 구조
 
-직장인이라면 한 번쯤 느껴봤을 퇴사 욕구, 오늘 직장에서 느낀 당신의 깊은 빡침을 ‘내품사’에게 말해보세요.
+**[bye bye company API Document](https://github.com/jo-bata/bye-bye-company-backend/wiki/bye-bye-company-API-Document)**
 
-사직서에 쓰기 적절한 말로 바꿔드립니다.
+**[bye bye company Database Structure](https://github.com/jo-bata/bye-bye-company-backend/wiki/bye-bye-company-Database-Structure)**
 
-[bye bye company API Document](https://github.com/jo-bata/bye-bye-company-backend/wiki/bye-bye-company-API-Document)
+### 내품사 안드로이드 Github
 
-[bye bye company Database Structure](https://github.com/jo-bata/bye-bye-company-backend/wiki/bye-bye-company-Database-Structure)
+**[UnithonTeam3](https://github.com/ykc415/UnitonTeam3)**
+
+### 팀원 소개
+- Front-End(Android) : 김소연, 박성현, 이동근
+- Back-End(Node.js) : 조현우
+- Designer : 김민영, 조수현
+
+![bye-bye-company_02](https://user-images.githubusercontent.com/36880294/43389793-87d5d69e-9427-11e8-8513-f83643f6d20e.jpeg)
